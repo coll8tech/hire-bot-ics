@@ -3,11 +3,14 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import ProtectedRoute from "./components/ProtectedRoute";
 import Navigation from "./components/Navigation";
 import Dashboard from "./pages/Dashboard";
 import Jobs from "./pages/Jobs";
 import Candidates from "./pages/Candidates";
 import Matching from "./pages/Matching";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -17,17 +20,38 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
-      <BrowserRouter>
-        <Navigation />
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/jobs" element={<Jobs />} />
-          <Route path="/candidates" element={<Candidates />} />
-          <Route path="/matching" element={<Matching />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/" element={
+              <ProtectedRoute>
+                <Navigation />
+                <Dashboard />
+              </ProtectedRoute>
+            } />
+            <Route path="/jobs" element={
+              <ProtectedRoute allowedRoles={['recruiter', 'admin']}>
+                <Navigation />
+                <Jobs />
+              </ProtectedRoute>
+            } />
+            <Route path="/candidates" element={
+              <ProtectedRoute allowedRoles={['recruiter', 'admin']}>
+                <Navigation />
+                <Candidates />
+              </ProtectedRoute>
+            } />
+            <Route path="/matching" element={
+              <ProtectedRoute allowedRoles={['recruiter', 'admin']}>
+                <Navigation />
+                <Matching />
+              </ProtectedRoute>
+            } />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
